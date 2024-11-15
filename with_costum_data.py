@@ -240,8 +240,8 @@ import requests
 load_dotenv()
 
 MODEL_ID = os.environ['MODEL_ID']
-PDF_DIRECTORY = "/Users/macbook/Desktop/texttoaudio_deploy/data2"  # Directory with multiple PDFs
-INDEX_PATH = "/Users/macbook/Desktop/texttoaudio_deploy/faiss_index"  # Path to save/load FAISS index
+PDF_DIRECTORY = "./data2"  # Directory with multiple PDFs
+INDEX_PATH = "./faiss_index"  # Path to save/load FAISS index
 OLLAMA_URL = "http://127.0.0.1:11434"  # Connect to local Ollama server
 
 # Initialize embeddings if not in session state
