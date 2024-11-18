@@ -263,7 +263,7 @@ def check_ollama_server(url):
 # Check Ollama server connection
 server_connected = check_ollama_server(OLLAMA_URL)
 if server_connected:
-    st.write(f"Ollama server connected at {OLLAMA_URL}")
+    # st.write(f"Ollama server connected at {OLLAMA_URL}")
     print(f"Ollama server connected at {OLLAMA_URL}")
 else:
     st.write(f"Failed to connect to Ollama server at {OLLAMA_URL}")
