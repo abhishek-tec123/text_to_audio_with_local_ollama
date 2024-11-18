@@ -242,8 +242,7 @@ load_dotenv()
 MODEL_ID = os.environ['MODEL_ID']
 PDF_DIRECTORY = "./data2"  # Directory with multiple PDFs
 INDEX_PATH = "./faiss_index"  # Path to save/load FAISS index
-OLLAMA_URL = "https://3d30-2405-201-4019-6065-f4-408c-1f8b-f1ba.ngrok-free.app"  # Replace with your ngrok URL
-  # Connect to local Ollama server
+OLLAMA_URL = "http://127.0.0.1:11434"  # Connect to local Ollama server
 
 # Initialize embeddings if not in session state
 if "embeddings" not in st.session_state:
