@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Query Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .expandable {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .expandable-content {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .expandable:hover {
+            background-color: #e8e8e8;
+        }
+
+        .response-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            border-radius: 5px;
+        }
+
+        .response-container .answer {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .response-container .context {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #4cae4c;
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Document Query Interface</h1>
+
+    <!-- Expandable box for displaying indexed documents -->
+    <div class="expandable" onclick="toggleContent('documents')">
+        <strong>Show All Indexed Documents</strong>
+    </div>
+    <div class="expandable-content" id="documents-content">
+        <!-- Documents will be loaded here dynamically -->
+    </div>
+
+    <!-- User query input and submission -->
+    <div class="response-container">
+        <input type="text" id="query-input" placeholder="Enter your query here" style="width: 100%; padding: 10px; font-size: 16px;">
+        <button onclick="queryDocuments()">Submit Query</button>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loading">Loading...</div>
+
+    <!-- Response container where the answer and context will be displayed -->
+    <div class="response-container" id="response-container" style="display:none;">
+        <div class="answer" id="answer"></div>
+        <div class="context" id="context"></div>
+    </div>
+
+    <script>
+        // Toggle the display of expandable content
+        function toggleContent(id) {
+            var content = document.getElementById(id + "-content");
+            content.style.display = (content.style.display === "block") ? "none" : "block";
+        }
+
+        // Fetch all indexed documents
+        function fetchDocuments() {
+            fetch('http://127.0.0.1:5000/documents')
+                .then(response => response.json())
+                .then(data => {
+                    let documentsContent = '';
+                    data.forEach(doc => {
+                        documentsContent += `
+                            <div class="expandable" onclick="toggleContent('doc-${doc.source_index}')">
+                                <strong>${doc.filename} - Page ${doc.page}</strong>
+                            </div>
+                            <div class="expandable-content" id="doc-${doc.source_index}">
+                                <p><strong>Content:</strong> ${doc.content}</p>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('documents-content').innerHTML = documentsContent;
+                })
+                .catch(error => {
+                    document.getElementById('documents-content').innerHTML = '<p class="error">Failed to load documents.</p>';
+                });
+        }
+
+        // Submit query and fetch the response
+        function queryDocuments() {
+            const queryInput = document.getElementById('query-input').value;
+            if (!queryInput) {
+                alert("Please enter a query.");
+                return;
+            }
+
+            // Show loading indicator
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('response-container').style.display = 'none';
+
+            fetch('http://127.0.0.1:5000/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: queryInput })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading indicator
+                    document.getElementById('loading').style.display = 'none';
+
+                    if (data.error) {
+                        alert("Error: " + data.error);
+                        return;
+                    }
+
+                    // Display the answer and context
+                    document.getElementById('answer').innerText = 'Answer: ' + data.answer;
+                    let contextContent = '';
+                    data.context.split("\n").forEach(doc => {
+                        contextContent += `
+                            <div class="expandable" onclick="toggleContent('${doc.filename}-${doc.page}')">
+                                <strong>${doc.filename} - Page ${doc.page}</strong>
+                            </div>
+                            <div class="expandable-content" id="${doc.filename}-${doc.page}">
+                                <p>${doc.content}</p>
+                            </div>
+                        `;
+                    });
+
+                    document.getElementById('context').innerHTML = contextContent;
+                    document.getElementById('response-container').style.display = 'block';
+                })
+                .catch(error => {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('response-container').innerHTML = '<p class="error">Failed to fetch the response.</p>';
+                });
+        }
+
+        // Fetch documents on page load
+        window.onload = function() {
+            fetchDocuments();
+        };
+    </script>
+</body>
+</html>
